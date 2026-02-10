@@ -67,30 +67,36 @@ jobs:
         working-directory: patches/xbuild
         run: cargo install --path xbuild
 
-      - name: Build APK
-        # 如果没有签名环境变量，xbuild 会生成带 debug 签名的包
-        run: x build --release --platform=android --arch=arm64 --format=apk
-
-      - name: Rename APK
+            - name: Rename APK
         run: |
-          # 兼容性重命名：无论生成在 debug 还是 release 文件夹下，都移动出来
-          find target/x/release/android -name "*.apk" -exec mv {} target/x/localdesktop-${{ steps.extract_version.outputs.version }}.apk \;
-
-      - name: Build AAB
-        run: x build --release --platform=android --arch=arm64 --format=aab
+          # 1. 确保目标存放目录存在
+          mkdir -p final_assets
+          # 2. 查找生成的任何 APK (递归 target 目录)
+          APK_FILE=$(find target -name "*.apk" | head -n 1)
+          if [ -n "$APK_FILE" ]; then
+            cp "$APK_FILE" "final_assets/localdesktop-${{ steps.extract_version.outputs.version }}.apk"
+            echo "✅ Found APK: $APK_FILE"
+          else
+            echo "❌ ERROR: APK NOT FOUND" && exit 1
+          fi
 
       - name: Rename AAB
         run: |
-          find target/x/release/android -name "*.aab" -exec mv {} target/x/localdesktop-${{ steps.extract_version.outputs.version }}.aab \;
+          AAB_FILE=$(find target -name "*.aab" | head -n 1)
+          if [ -n "$AAB_FILE" ]; then
+            cp "$AAB_FILE" "final_assets/localdesktop-${{ steps.extract_version.outputs.version }}.aab"
+            echo "✅ Found AAB: $AAB_FILE"
+          else
+            echo "❌ ERROR: AAB NOT FOUND" && exit 1
+          fi
 
       - name: Create GitHub Release
         if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
         with:
-          # 注意：如果是 Fork 的仓库，可能需要你提供自己的 PAT 存入 Secrets
           token: ${{ secrets.GITHUB_TOKEN }} 
           name: Local Desktop v${{ steps.extract_version.outputs.version }}
           tag_name: v${{ steps.extract_version.outputs.version }}
           files: |
-            target/x/localdesktop-${{ steps.extract_version.outputs.version }}.apk
-            target/x/localdesktop-${{ steps.extract_version.outputs.version }}.aab
+            final_assets/*.apk
+            final_assets/*.aab
