@@ -33,16 +33,19 @@ jobs:
 
       - name: Setup signing keystore
         env:
-          # 关键点：将 Secret 映射为环境变量
+          # 必须在这里显式映射，否则下方的 $ 变量全部为空
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           mkdir -p target/x/release/android/gradle/app
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > target/x/release/android/gradle/app/release-key.jks
+          # 使用 printf 或引用的变量来处理 Base64，防止空值产生空文件
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > target/x/release/android/gradle/app/release-key.jks
           
-          # 现在 $ANDROID_KEYSTORE_PASSWORD 才有值，建议加上引号防止特殊字符干扰
+          # 验证 Keystore
           keytool -list -v \
             -keystore target/x/release/android/gradle/app/release-key.jks \
             -storepass "$ANDROID_KEYSTORE_PASSWORD"
+
 
 
       - name: Update manifest.yaml to target API 35
