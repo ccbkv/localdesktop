@@ -32,11 +32,18 @@ jobs:
         run: echo "version=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[0].version')" >> "$GITHUB_OUTPUT"
 
       - name: Setup signing keystore
+        env:
+          # 关键点：将 Secret 映射为环境变量
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           mkdir -p target/x/release/android/gradle/app
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > target/x/release/android/gradle/app/release-key.jks
-          # Verify keystore
-          keytool -list -v -keystore target/x/release/android/gradle/app/release-key.jks -storepass $ANDROID_KEYSTORE_PASSWORD
+          
+          # 现在 $ANDROID_KEYSTORE_PASSWORD 才有值，建议加上引号防止特殊字符干扰
+          keytool -list -v \
+            -keystore target/x/release/android/gradle/app/release-key.jks \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD"
+
 
       - name: Update manifest.yaml to target API 35
         run: |
