@@ -67,12 +67,19 @@ jobs:
         working-directory: patches/xbuild
         run: cargo install --path xbuild
 
+      # --- 必须加上这一步，否则没有文件产出 ---
+      - name: Build APK & AAB
+        # 移除了 --release，因为无签名下 release 模式可能不产出文件
+        # xbuild 会自动生成 debug 签名的包，方便直接安装测试
+        run: |
+          x build --platform=android --arch=arm64 --format=apk
+          x build --platform=android --arch=arm64 --format=aab
+
       - name: Rename APK
         run: |
-          # 1. 确保目标存放目录存在
           mkdir -p final_assets
-          # 2. 查找生成的任何 APK (递归 target 目录)
-          APK_FILE=$(find target -name "*.apk" | head -n 1)
+          # 扩大搜索范围到根目录，确保能抓到 xbuild 生成的包
+          APK_FILE=$(find . -name "*.apk" -not -path "./android-ndk-r28/*" | head -n 1)
           if [ -n "$APK_FILE" ]; then
             cp "$APK_FILE" "final_assets/localdesktop-${{ steps.extract_version.outputs.version }}.apk"
             echo "✅ Found APK: $APK_FILE"
@@ -82,7 +89,7 @@ jobs:
 
       - name: Rename AAB
         run: |
-          AAB_FILE=$(find target -name "*.aab" | head -n 1)
+          AAB_FILE=$(find . -name "*.aab" -not -path "./android-ndk-r28/*" | head -n 1)
           if [ -n "$AAB_FILE" ]; then
             cp "$AAB_FILE" "final_assets/localdesktop-${{ steps.extract_version.outputs.version }}.aab"
             echo "✅ Found AAB: $AAB_FILE"
