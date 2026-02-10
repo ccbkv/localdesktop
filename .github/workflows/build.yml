@@ -67,7 +67,7 @@ jobs:
         working-directory: patches/xbuild
         run: cargo install --path xbuild
 
-            - name: Rename APK
+      - name: Rename APK
         run: |
           # 1. 确保目标存放目录存在
           mkdir -p final_assets
