@@ -7,7 +7,7 @@ use crate::{
             ndk::run_in_jvm,
         },
     },
-    core::{config, logging::PolarBearExpectation},
+    core::config,
 };
 use sentry::integrations::log::{LogFilter, SentryLogger};
 use winit::{
@@ -32,6 +32,10 @@ fn android_main(android_app: AndroidApp) {
 
     // Wrap the Android logger with Sentry's logger
     let logger = SentryLogger::with_dest(android_logger::AndroidLogger::default()).filter(|md| {
+        // How to use log::*() macros in this project:
+        // - log::error!() for critical errors that maintainers should be NOTIFIED about via email
+        // - log::trace!() for very detailed debugging information that need NOT to be captured with telemetry
+        // - log::info!() for everything else, maintainers can check this with Sentry's Logs
         match md.level() {
             // Capture error records as Sentry events
             // These are grouped into issues, representing high-severity errors to act upon
@@ -61,7 +65,7 @@ fn android_main(android_app: AndroidApp) {
     let event_loop = EventLoop::builder()
         .with_android_app(android_app.clone())
         .build()
-        .pb_expect("Failed to create event loop");
+        .expect("Failed to create event loop");
 
     // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
     // dispatched any events. This is ideal for games and similar applications.
@@ -76,5 +80,5 @@ fn android_main(android_app: AndroidApp) {
     let mut app = PolarBearApp::build(android_app);
 
     // Phase 2: Run
-    event_loop.run_app(&mut app).pb_expect("Failed to run app");
+    event_loop.run_app(&mut app).expect("Failed to run app");
 }

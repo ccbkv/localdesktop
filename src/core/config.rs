@@ -17,7 +17,7 @@ pub const WAYLAND_SOCKET_NAME: &str = "wayland-0";
 
 pub const MAX_PANEL_LOG_ENTRIES: usize = 100;
 
-pub const SENTRY_DSN: &str = "https://38b0318da81ccc308c2c75686371ddda@o4509548388417536.ingest.de.sentry.io/4509548392480848";
+pub const SENTRY_DSN: &str = "https://d8af27f864ade027ff81ecadea91b02e@o4509548388417536.ingest.de.sentry.io/4509548392480848";
 
 /// Make sure the config keys are all lowercase, and config values are single-line. Use \n for multi-line config values if needed
 /// If a key exists multiple time, the first entry is applied
@@ -62,12 +62,12 @@ pub struct CommandConfig {
 }
 
 fn default_check() -> String {
-    "pacman -Qg lxqt && pacman -Q xorg-xwayland && pacman -Q lxqt-wayland-session && pacman -Q labwc && pacman -Q breeze-icons && pacman -Q onboard"
+    "pacman -Q noto-fonts && pacman -Q lxqt-session && pacman -Q lxqt-panel && pacman -Q pcmanfm-qt && pacman -Q openbox && pacman -Q xorg-xwayland && pacman -Q lxqt-wayland-session && pacman -Q labwc && pacman -Q breeze-icons && pacman -Q onboard"
         .to_string()
 }
 
 fn default_install() -> String {
-    "stdbuf -oL pacman -Syu lxqt xorg-xwayland lxqt-wayland-session labwc breeze-icons onboard --noconfirm --noprogressbar"
+    "stdbuf -oL pacman -Syu --needed --noconfirm --noprogressbar noto-fonts liblxqt lxqt-about lxqt-admin lxqt-archiver lxqt-config lxqt-globalkeys lxqt-menu-data lxqt-notificationd lxqt-openssh-askpass lxqt-panel lxqt-policykit lxqt-powermanagement lxqt-qtplugin lxqt-runner lxqt-session lxqt-sudo lxqt-themes lxqt-wayland-session pcmanfm-qt qps screengrab xdg-desktop-portal-lxqt openbox xorg-xwayland labwc breeze-icons onboard"
         .to_string()
 }
 

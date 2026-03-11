@@ -1,5 +1,4 @@
 use crate::android::proot::setup::SetupMessage;
-use crate::core::logging::PolarBearExpectation;
 use serde_json::json;
 use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex};
@@ -21,7 +20,7 @@ pub struct WebviewBackend {
 impl WebviewBackend {
     /// Start accepting connections and listening for messages
     pub fn build(receiver: Receiver<SetupMessage>, progress: Arc<Mutex<u16>>) -> Self {
-        let socket = Server::bind("127.0.0.1:0").pb_expect("Failed to bind socket");
+        let socket = Server::bind("127.0.0.1:0").expect("Failed to bind socket");
         let socket_port = socket.local_addr().unwrap().port();
 
         let active_client = Arc::new(Mutex::new(None));
@@ -65,11 +64,14 @@ impl WebviewBackend {
                                 "progress": progress,
                                 "message": msg,
                             }),
-                            SetupMessage::Error(msg) => json!({
-                                "progress": progress,
-                                "message": msg,
-                                "isError": true
-                            }),
+                            SetupMessage::Error(msg) => {
+                                log::info!("Setup error [{}%]: {}", progress, msg);
+                                json!({
+                                    "progress": progress,
+                                    "message": msg,
+                                    "isError": true
+                                })
+                            }
                         };
 
                         let message = OwnedMessage::Text(json_message.to_string());

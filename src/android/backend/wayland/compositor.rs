@@ -1,5 +1,4 @@
 use super::bind::bind_socket;
-use crate::core::logging::PolarBearExpectation;
 use smithay::{
     backend::renderer::utils::on_commit_buffer_handler,
     delegate_compositor, delegate_data_device, delegate_output, delegate_seat, delegate_shm,
@@ -173,13 +172,9 @@ pub struct ClientState {
 }
 
 impl ClientData for ClientState {
-    fn initialized(&self, _client_id: ClientId) {
-        log::info!("initialized");
-    }
+    fn initialized(&self, _client_id: ClientId) {}
 
-    fn disconnected(&self, _client_id: ClientId, _reason: DisconnectReason) {
-        log::info!("disconnected");
-    }
+    fn disconnected(&self, _client_id: ClientId, _reason: DisconnectReason) {}
 }
 
 impl OutputHandler for State {}
@@ -208,7 +203,7 @@ impl Compositor {
         // Key repeat rate and delay are in milliseconds: https://wayland-book.com/seat/keyboard.html
         let keyboard = seat
             .add_keyboard(Default::default(), 1000, 200)
-            .pb_expect("Failed to add keyboard");
+            .expect("Failed to add keyboard");
         let touch = seat.add_touch();
         let pointer = seat.add_pointer();
 
