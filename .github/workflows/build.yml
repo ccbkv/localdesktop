@@ -108,8 +108,13 @@ jobs:
         working-directory: patches/xbuild
         run: cargo install --path xbuild
 
-      - name: Build APK
-        run: x build --release --platform=android --arch=arm64 --format=apk
+      # --- 必须加上这一步，否则没有文件产出 ---
+      - name: Build APK & AAB
+        # 移除了 --release，因为无签名下 release 模式可能不产出文件
+        # xbuild 会自动生成 debug 签名的包，方便直接安装测试
+        run: |
+          x build --platform=android --arch=arm64 --format=apk
+          x build --platform=android --arch=arm64 --format=aab
 
       - name: Rename APK
         run: |
@@ -122,13 +127,15 @@ jobs:
           else
             echo "❌ ERROR: APK NOT FOUND" && exit 1
           fi
-      - name: Build AAB
-        run: x build --release --platform=android --arch=arm64 --format=aab
-
       - name: Rename AAB
         run: |
-          mv target/x/release/android/gradle/app/build/outputs/bundle/debug/app-debug.aab target/x/localdesktop-${{ steps.extract_version.outputs.version }}-debug.aab
-          mv target/x/release/android/gradle/app/build/outputs/bundle/release/app-release.aab target/x/localdesktop-${{ steps.extract_version.outputs.version }}.aab
+          AAB_FILE=$(find . -name "*.aab" -not -path "./android-ndk-r28/*" | head -n 1)
+          if [ -n "$AAB_FILE" ]; then
+            cp "$AAB_FILE" "final_assets/localdesktop-${{ steps.extract_version.outputs.version }}.aab"
+            echo "✅ Found AAB: $AAB_FILE"
+          else
+            echo "❌ ERROR: AAB NOT FOUND" && exit 1
+          fi
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
