@@ -11,9 +11,7 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
-  ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-  ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-  ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+ 
 
 jobs:
   build:
@@ -69,14 +67,8 @@ jobs:
       - name: Fallback release notes to commit message
         if: steps.release_notes.outputs.found != 'true'
         run: |
-          git log -1 --pretty=%B > "${{ steps.release_notes.outputs.path }}"
-
-      - name: Setup signing keystore
-        run: |
-          mkdir -p target/x/release/android/gradle/app
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > target/x/release/android/gradle/app/release-key.jks
-          # Verify keystore
-          keytool -list -v -keystore target/x/release/android/gradle/app/release-key.jks -storepass $ANDROID_KEYSTORE_PASSWORD
+          git log -1 --pretty=%B > "${{ steps.release_notes.outputs.path }}"      
+  
 
       - name: Update manifest.yaml to target API 35
         run: |
