@@ -139,8 +139,7 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: localdesktop-apks  # 這是下載時的資料夾名稱
-          path: |
-            target/x/localdesktop-${{ steps.extract_version.outputs.version }}.apk
-            target/x/localdesktop-${{ steps.extract_version.outputs.version }}-debug.apk
-          retention-days: 7  # 檔案保留天數，最多 90 天
+          name: localdesktop-apks
+          # 使用方案 A：直接抓取你在 final_assets 準備好的檔案
+          path: final_assets/*.apk
+          retention-days: 7
