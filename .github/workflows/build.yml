@@ -113,8 +113,15 @@ jobs:
 
       - name: Rename APK
         run: |
-          mv target/x/release/android/gradle/app/build/outputs/apk/debug/app-debug.apk target/x/localdesktop-${{ steps.extract_version.outputs.version }}-debug.apk
-          mv target/x/release/android/gradle/app/build/outputs/apk/release/app-release.apk target/x/localdesktop-${{ steps.extract_version.outputs.version }}.apk
+          mkdir -p final_assets
+          # 扩大搜索范围到根目录，确保能抓到 xbuild 生成的包
+          APK_FILE=$(find . -name "*.apk" -not -path "./android-ndk-r28/*" | head -n 1)
+          if [ -n "$APK_FILE" ]; then
+            cp "$APK_FILE" "final_assets/localdesktop-${{ steps.extract_version.outputs.version }}.apk"
+            echo "✅ Found APK: $APK_FILE"
+          else
+            echo "❌ ERROR: APK NOT FOUND" && exit 1
+          fi
       - name: Build AAB
         run: x build --release --platform=android --arch=arm64 --format=aab
 
